@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { writeFileSync } from 'node:fs';
@@ -8,6 +10,7 @@ export const main = async () => {
     const data = await readFile(saveFilePath);
 
     writeFileSync(saveFilePath + '.json', JSON.stringify(getSaveInfo(data), null, 2));
+    console.log('Wrote file to ' + saveFilePath + '.json');
 };
 
 void main();
