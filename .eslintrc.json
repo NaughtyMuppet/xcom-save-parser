@@ -1,0 +1,9 @@
+{
+    "extends": "eslint-config-hein",
+    "rules": {
+        "template-curly-spacing": "off",
+        "unicorn/prefer-top-level-await": "off",
+        "unicorn/prevent-abbreviations": "off",
+        "no-fallthrough": "error"
+    }
+}
