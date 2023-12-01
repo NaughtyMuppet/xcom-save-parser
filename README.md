@@ -10,3 +10,9 @@
 
 * Parsing a strategy layer save seems to work completely.
 * Tactical layer parse sort of works, but only parses about half of the data. I assume there's some extra info in the tactical layer that I don't know how to parse yet.
+
+## CLI Usage
+
+```
+npx github:NaughtyMuppet/xcom-save-parser save99
+```

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "bin": "dist/bin/xcom-save-parser.js",
   "scripts": {
     "build": "rimraf dist && tsc",
     "start": "ts-node src/index.ts"
