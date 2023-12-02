@@ -19,18 +19,65 @@ export const getSaveInfo = (data: Buffer) => {
 const getGameInfo = (data: Buffer) => {
     const header = new DataHandler(data.subarray(0, COMPRESSED_DATA_OFFSET));
     header.seek(4 * 4); // int32, byte[4], int32
-    const gameInfo = header.readUnicodeString();
+    const gameInfoRaw = header.readUnicodeString();
+    const gameInfo = parseGameInfo(gameInfoRaw);
     const date = header.readUnicodeString();
-    const mapInfo = header.readUnicodeString();
+    const mapInfoRaw = header.readUnicodeString();
+    const mapInfo = parseMapInfo(mapInfoRaw);
     header.seek(4 * 3);
     const dlcInfo = header.readUnicodeString();
     const language = header.readUnicodeString();
     return {
         gameInfo,
+        gameInfoRaw,
         date,
         mapInfo,
+        mapInfoRaw,
         dlcInfo,
         language
+    };
+};
+
+const parseGameInfo = (gameInfo: string) => {
+    // 12/2/2023 - 15:42 - IRONMAN: Game 5 - Geoscape - 5:32 am   March 1 2015
+    // 12/2/2023 - 16:03 - IRONMAN: Game 5 - Operation Blinding Shroud (Gateway) - Lille, France 5:21 am
+    // 8/29/2015 - 11:05 - Game 2 - Geoscape - 6:17 am   July 21 2016
+    // 11/30/2023 - 18:47 - Game 3 - Operation Blinding Shroud (Gateway) - Chihuahua, Mexico 12:12 am
+    // "12/2/2023 - 16:14 - IRONMAN: Game 5 - Operation Red Palace (UFO Crash Site) - Germany 5:35 am"
+    const [date, time, gameName, operation, locationInfo] = gameInfo.split(' - ');
+    const isIronman = gameName.includes('IRONMAN');
+    const gameNumber = Number.parseInt(gameName.replace('IRONMAN: ', '').replace('Game ', ''), 10);
+    const [operationName, operationType] = operation.split(' (');
+    const gameTime = locationInfo.match(/(\d+):(\d+) (am|pm)/)?.[0];
+    const gameDate = locationInfo.match(/(\w+) (\d+) (\d+)$/)?.[0];
+    const [city, rest] = locationInfo.split(',');
+    const country = rest
+        ?.trim()
+        .match(/[ A-Za-z]+/)?.[0]
+        .trim();
+    // TODO: parse location
+    return {
+        date,
+        time,
+        city: rest ? city : undefined,
+        country: country || undefined,
+        gameName,
+        isIronman,
+        gameNumber,
+        operationName,
+        operationType: operationType?.replace(')', ''),
+        gameTime,
+        gameDate
+    };
+};
+
+const parseMapInfo = (mapInfo: string) => {
+    // open CSmallScout_DirtRoad?game=XComGame.XComTacticalGame?LoadingFromStrategy=1?Meld=1?StreamingMap0=CIN_DropshipIntros?StreamingMap1=CSmallScout_DirtRoad_Tutorial?LoadingSave
+    // open Command1?game=XComStrategyGame.XComHeadQuartersGame
+    const [mapName, ...rest] = mapInfo.split('?');
+    return {
+        mapName: mapName.replace('open ', ''),
+        ...Object.fromEntries(rest.map((x) => x.split('=')))
     };
 };
 
@@ -227,7 +274,7 @@ const readProperties = (handler: DataHandler) => {
                     name,
                     size: 8,
                     kind: PropertyKind.ObjectProperty,
-                    value: actor1 === -1 ? actor1 : actor1 / 2
+                    value: actor1 === -1 ? actor1 : actor1 // / 2
                 };
                 break;
             }
@@ -301,7 +348,7 @@ const readProperties = (handler: DataHandler) => {
                             if (actor1 === -1 && actor2 === -1) {
                                 elements.push(actor1);
                             } else if (actor1 === actor2 + 1) {
-                                elements.push(actor1 === -1 ? actor1 : actor1 / 2);
+                                elements.push(actor1 === -1 ? actor1 : actor1 /* / 2 */);
                             } else {
                                 // console.info(`Actor references unrelated ${actor1}:${actor2} at ${handler.position}`);
                             }
