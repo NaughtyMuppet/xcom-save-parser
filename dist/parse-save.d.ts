@@ -23,6 +23,7 @@ export declare const getSaveInfo: (data: Buffer) => {
     };
     actorTable: any[];
     checkpoints: Checkpoint[];
+    strategyLayerInfo: any;
 };
 interface Checkpoint {
     gameType: string;

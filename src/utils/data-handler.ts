@@ -82,9 +82,10 @@ export class DataHandler {
 
     findNextSequence(sequence: Buffer) {
         const index = this.value.indexOf(sequence, this.position);
-        if (index === -1) {
-            throw new Error(`Sequence not found at offset ${this.position}`);
-        }
         return index;
+    }
+
+    readRestOfBuffer() {
+        return this.value.subarray(this.position);
     }
 }

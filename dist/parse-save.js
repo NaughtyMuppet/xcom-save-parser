@@ -15,7 +15,17 @@ const getSaveInfo = (data) => {
     const uncompressedHandler = new data_handler_1.DataHandler(parsedData);
     const actorTable = readActorTable(uncompressedHandler);
     const checkpoints = readCheckpoints(uncompressedHandler);
-    return { gameInfo, actorTable, checkpoints };
+    const magicNumberLocation = uncompressedHandler.findNextSequence(Buffer.from([0xc1, 0x83, 0x2a, 0x9e]));
+    let strategyLayerInfo;
+    if (magicNumberLocation !== -1) {
+        // Tactical layer save have a lot of data that we can't parse. I did discover that way at the end there's some extra data
+        // that needs more decompressing.
+        uncompressedHandler.seekAbsolute(magicNumberLocation - constants_1.COMPRESSED_DATA_OFFSET);
+        const doubleDecompressed = new data_handler_1.DataHandler((0, decompress_1.decompress)(uncompressedHandler.readRestOfBuffer()));
+        doubleDecompressed.seek(126 + 36);
+        strategyLayerInfo = readProperties(doubleDecompressed);
+    }
+    return { gameInfo, actorTable, checkpoints, strategyLayerInfo };
 };
 exports.getSaveInfo = getSaveInfo;
 const getGameInfo = (data) => {
@@ -56,7 +66,6 @@ const parseGameInfo = (gameInfo) => {
         ?.trim()
         .match(/[ A-Za-z]+/)?.[0]
         .trim();
-    // TODO: parse location
     return {
         date,
         time,

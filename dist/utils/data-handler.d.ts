@@ -17,4 +17,5 @@ export declare class DataHandler {
     readSubarray(length: number, seek?: boolean): Buffer;
     readUnicodeString(): string;
     findNextSequence(sequence: Buffer): number;
+    readRestOfBuffer(): Buffer;
 }
